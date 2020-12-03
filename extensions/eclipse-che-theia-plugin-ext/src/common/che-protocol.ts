@@ -138,7 +138,15 @@ export interface CheSideCarContentReaderMain {
   $registerContentReader(scheme: string): Promise<void>;
 }
 
+export enum FileTypeMain {
+  Unknown = 0,
+  File = 1,
+  Directory = 2,
+  SymbolicLink = 64,
+}
+
 export interface CheSideCarFileSystem {
+  $stat(resource: string): Promise<{ type: FileTypeMain; mtime: number; ctime: number; size: number }>;
   $mkdir(resource: string): Promise<void>;
   $readdir(resource: string): Promise<[string, string][]>; // replace second string with FileType
   $delete(resource: string, opts: { recursive: boolean; useTrash: boolean }): Promise<void>;

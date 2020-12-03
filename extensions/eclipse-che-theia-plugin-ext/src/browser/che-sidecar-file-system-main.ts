@@ -8,7 +8,12 @@
  * SPDX-License-Identifier: EPL-2.0
  ***********************************************************************/
 
-import { CheSideCarFileSystem, CheSideCarFileSystemMain, PLUGIN_RPC_CONTEXT } from '../common/che-protocol';
+import {
+  CheSideCarFileSystem,
+  CheSideCarFileSystemMain,
+  FileTypeMain,
+  PLUGIN_RPC_CONTEXT,
+} from '../common/che-protocol';
 import { Disposable, Emitter, Event } from '@theia/core/lib/common';
 import {
   FileChange,
@@ -18,8 +23,9 @@ import {
   FileSystemProviderWithFileReadWriteCapability,
   FileType,
   FileWriteOptions,
+  Stat,
+  WatchOptions,
 } from '@theia/filesystem/lib/common/files';
-import { Stat, WatchOptions } from '@theia/filesystem/lib/common/files';
 
 import { FileService } from '@theia/filesystem/lib/browser/file-service';
 import { RPCProtocol } from '@theia/plugin-ext/lib/common/rpc-protocol';
@@ -77,8 +83,27 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
     throw new Error('Not implemented');
   }
 
-  stat(resource: URI): Promise<Stat> {
-    throw new Error('Not implemented');
+  async stat(resource: URI): Promise<Stat> {
+    const stat = await this.delegate.$stat(resource.path.toString());
+    return {
+      type: this.toType(stat.type),
+      ctime: stat.ctime,
+      mtime: stat.mtime,
+      size: stat.size,
+    };
+  }
+
+  private toType(type: FileTypeMain): FileType {
+    switch (type) {
+      case FileTypeMain.Directory:
+        return FileType.Directory;
+      case FileTypeMain.File:
+        return FileType.File;
+      case FileTypeMain.SymbolicLink:
+        return FileType.SymbolicLink;
+      case FileTypeMain.Unknown:
+        return FileType.Unknown;
+    }
   }
 
   async mkdir(resource: URI): Promise<void> {
