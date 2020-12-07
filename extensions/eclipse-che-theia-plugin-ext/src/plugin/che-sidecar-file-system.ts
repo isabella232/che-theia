@@ -172,7 +172,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     }
   }
 
-  protected toType(entry: Stats, symbolicLink?: { dangling: boolean }): FileTypeMain {
+  private toType(entry: Stats, symbolicLink?: { dangling: boolean }): FileTypeMain {
     // Signal file type by checking for file / directory, except:
     // - symbolic links pointing to non-existing files are FileType.Unknown
     // - files that are neither file nor directory are FileType.Unknown
@@ -195,7 +195,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     return type;
   }
 
-  protected toFileSystemProviderError(error: NodeJS.ErrnoException): FileSystemProviderError {
+  private toFileSystemProviderError(error: NodeJS.ErrnoException): FileSystemProviderError {
     if (error instanceof FileSystemProviderError) {
       return error; // avoid double conversion
     }

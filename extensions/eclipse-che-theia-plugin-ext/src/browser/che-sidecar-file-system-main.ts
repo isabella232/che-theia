@@ -93,20 +93,20 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
     };
   }
 
-  async mkdir(resource: URI): Promise<void> {
-    return await this.delegate.$mkdir(resource.toString());
+  mkdir(resource: URI): Promise<void> {
+    return this.delegate.$mkdir(resource.toString());
   }
 
   async readdir(resource: URI): Promise<[string, FileType][]> {
     return (await this.delegate.$readdir(resource.toString())).map(value => [value[0], this.toType(value[1])]);
   }
 
-  async delete(resource: URI, opts: FileDeleteOptions): Promise<void> {
-    return await this.delegate.$delete(resource.toString(), { recursive: opts.recursive, useTrash: opts.useTrash });
+  delete(resource: URI, opts: FileDeleteOptions): Promise<void> {
+    return this.delegate.$delete(resource.toString(), { recursive: opts.recursive, useTrash: opts.useTrash });
   }
 
-  async rename(from: URI, to: URI, opts: FileOverwriteOptions): Promise<void> {
-    return await this.delegate.$rename(from.toString(), to.toString(), { overwrite: opts.overwrite });
+  rename(from: URI, to: URI, opts: FileOverwriteOptions): Promise<void> {
+    return this.delegate.$rename(from.toString(), to.toString(), { overwrite: opts.overwrite });
   }
 
   async readFile(resource: URI): Promise<Uint8Array> {
@@ -114,17 +114,17 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
       '+++ che-sidecar-file-system-main.ts:102 CheSideCarFileSystemProvider > readFile for resource: ' +
         resource.path.toString()
     );
-    return new Buffer(await this.delegate.$readFile(resource.path.toString()));
+    return Buffer.from(await this.delegate.$readFile(resource.path.toString()));
   }
 
   async writeFile(resource: URI, content: Uint8Array, opts: FileWriteOptions): Promise<void> {
-    return await this.delegate.$writeFile(resource.path.toString(), content.toString(), {
+    return this.delegate.$writeFile(resource.path.toString(), content.toString(), {
       overwrite: opts.overwrite,
       create: opts.create,
     });
   }
 
-  protected toType(type: FileTypeMain): FileType {
+  private toType(type: FileTypeMain): FileType {
     switch (type) {
       case FileTypeMain.Directory:
         return FileType.Directory;
