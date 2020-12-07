@@ -10,7 +10,6 @@
 import { CheSideCarFileSystem, FileTypeMain, PLUGIN_RPC_CONTEXT } from '../common/che-protocol';
 import { Stats, lstat, readFile, readdir, stat } from 'fs';
 
-import { Path } from '@theia/core';
 import { RPCProtocol } from '@theia/plugin-ext/lib/common/rpc-protocol';
 import { URI } from 'vscode-uri';
 import { promisify } from 'util';
@@ -120,7 +119,8 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
       await Promise.all(
         children.map(async child => {
           try {
-            result.push([child, (await this.$stat(new Path(resource).join(child).toString())).type]);
+            const rawPath = resource.endsWith('/') ? resource + child : resource + '/' + child;
+            result.push([child, (await this.$stat(rawPath)).type]);
           } catch (error) {
             console.trace(error); // ignore errors for individual entries that can arise from permission denied
           }
