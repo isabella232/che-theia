@@ -120,8 +120,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
       await Promise.all(
         children.map(async child => {
           try {
-            const stat = await this.$stat(new Path(resource).join(child).toString());
-            result.push([child, stat.type]);
+            result.push([child, (await this.$stat(new Path(resource).join(child).toString())).type]);
           } catch (error) {
             console.trace(error); // ignore errors for individual entries that can arise from permission denied
           }
