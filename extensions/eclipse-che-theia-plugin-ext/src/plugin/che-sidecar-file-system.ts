@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-
 /**********************************************************************
  * Copyright (c) 2018-2020 Red Hat, Inc.
  *
@@ -24,7 +22,7 @@ export namespace SideCarFileSystemProvider {
     // If the file is a symbolic link pointing to a non
     // existing file, the stat will be of the link and
     // the `dangling` flag will indicate this.
-    stat: fs.Stats;
+    stat: Stats;
 
     // Will be provided if the resource is a symbolic link
     // on disk. Use the `dangling` flag to find out if it
