@@ -80,7 +80,7 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
   }
 
   watch(resource: URI, opts: WatchOptions): IDisposable {
-    throw new Error('Not implemented');
+    throw new Error('Not implemented yet.');
   }
 
   async stat(resource: URI): Promise<Stat> {
@@ -93,26 +93,12 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
     };
   }
 
-  private toType(type: FileTypeMain): FileType {
-    switch (type) {
-      case FileTypeMain.Directory:
-        return FileType.Directory;
-      case FileTypeMain.File:
-        return FileType.File;
-      case FileTypeMain.SymbolicLink:
-        return FileType.SymbolicLink;
-      case FileTypeMain.Unknown:
-        return FileType.Unknown;
-    }
-  }
-
   async mkdir(resource: URI): Promise<void> {
     return await this.delegate.$mkdir(resource.toString());
   }
 
   async readdir(resource: URI): Promise<[string, FileType][]> {
-    const rawResult = await this.delegate.$readdir(resource.toString());
-    return rawResult.map(value => [][{} as FileType]); // Todo rework mapping
+    return (await this.delegate.$readdir(resource.toString())).map(value => [value[0], this.toType(value[1])]);
   }
 
   async delete(resource: URI, opts: FileDeleteOptions): Promise<void> {
@@ -132,9 +118,22 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
   }
 
   async writeFile(resource: URI, content: Uint8Array, opts: FileWriteOptions): Promise<void> {
-    return await this.delegate.$writeFile(resource.path.toString(), content, {
+    return await this.delegate.$writeFile(resource.path.toString(), content.toString(), {
       overwrite: opts.overwrite,
       create: opts.create,
     });
+  }
+
+  protected toType(type: FileTypeMain): FileType {
+    switch (type) {
+      case FileTypeMain.Directory:
+        return FileType.Directory;
+      case FileTypeMain.File:
+        return FileType.File;
+      case FileTypeMain.SymbolicLink:
+        return FileType.SymbolicLink;
+      case FileTypeMain.Unknown:
+        return FileType.Unknown;
+    }
   }
 }

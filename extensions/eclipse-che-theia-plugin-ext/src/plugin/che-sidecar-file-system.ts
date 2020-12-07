@@ -8,8 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  ***********************************************************************/
 import { CheSideCarFileSystem, FileTypeMain, PLUGIN_RPC_CONTEXT } from '../common/che-protocol';
-import { Stats, lstat, readFile, stat } from 'fs';
+import { Stats, lstat, readFile, readdir, stat } from 'fs';
 
+import { Path } from '@theia/core';
 import { RPCProtocol } from '@theia/plugin-ext/lib/common/rpc-protocol';
 import { URI } from 'vscode-uri';
 import { promisify } from 'util';
@@ -92,6 +93,55 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     }
   }
 
+  $delete(resource: string, opts: { recursive: boolean; useTrash: boolean }): Promise<void> {
+    return Promise.reject('Not implemented yet.');
+  }
+
+  $mkdir(resource: string): Promise<void> {
+    return Promise.reject('Not implemented yet.');
+  }
+
+  async $readFile(resource: string): Promise<string> {
+    console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile for resource: ' + resource);
+    const _uri = URI.parse(resource);
+    console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile parsed _uri: ' + JSON.stringify(_uri));
+    try {
+      return (await promisify(readFile)(_uri.fsPath)).toString();
+    } catch (error) {
+      return Promise.reject(this.toFileSystemProviderError(error));
+    }
+  }
+
+  async $readdir(resource: string): Promise<[string, FileTypeMain][]> {
+    try {
+      const children = await promisify(readdir)(resource);
+
+      const result: [string, FileTypeMain][] = [];
+      await Promise.all(
+        children.map(async child => {
+          try {
+            const stat = await this.$stat(new Path(resource).join(child).toString());
+            result.push([child, stat.type]);
+          } catch (error) {
+            console.trace(error); // ignore errors for individual entries that can arise from permission denied
+          }
+        })
+      );
+
+      return result;
+    } catch (error) {
+      throw this.toFileSystemProviderError(error);
+    }
+  }
+
+  $rename(from: string, to: string, opts: { overwrite: boolean }): Promise<void> {
+    return Promise.reject('Not implemented yet.');
+  }
+
+  $writeFile(resource: string, content: string, opts: { overwrite: boolean; create: boolean }): Promise<void> {
+    return Promise.reject('Not implemented yet.');
+  }
+
   protected async statLink(path: string): Promise<SideCarFileSystemProvider.StatAndLink> {
     // First stat the link
     let lstats: Stats | undefined;
@@ -123,7 +173,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     }
   }
 
-  private toType(entry: Stats, symbolicLink?: { dangling: boolean }): FileTypeMain {
+  protected toType(entry: Stats, symbolicLink?: { dangling: boolean }): FileTypeMain {
     // Signal file type by checking for file / directory, except:
     // - symbolic links pointing to non-existing files are FileType.Unknown
     // - files that are neither file nor directory are FileType.Unknown
@@ -146,38 +196,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     return type;
   }
 
-  $delete(resource: string, opts: { recursive: boolean; useTrash: boolean }): Promise<void> {
-    return Promise.reject('Not implemented.');
-  }
-
-  $mkdir(resource: string): Promise<void> {
-    return Promise.reject('Not implemented.');
-  }
-
-  async $readFile(resource: string): Promise<string> {
-    console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile for resource: ' + resource);
-    const _uri = URI.parse(resource);
-    console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile parsed _uri: ' + JSON.stringify(_uri));
-    try {
-      return (await promisify(readFile)(_uri.fsPath)).toString();
-    } catch (error) {
-      return Promise.reject(this.toFileSystemProviderError(error));
-    }
-  }
-
-  $readdir(resource: string): Promise<[string, string][]> {
-    return Promise.reject('Not implemented.');
-  }
-
-  $rename(from: string, to: string, opts: { overwrite: boolean }): Promise<void> {
-    return Promise.reject('Not implemented.');
-  }
-
-  $writeFile(resource: string, content: Uint8Array, opts: { overwrite: boolean; create: boolean }): Promise<void> {
-    return Promise.reject('Not implemented.');
-  }
-
-  private toFileSystemProviderError(error: NodeJS.ErrnoException): FileSystemProviderError {
+  protected toFileSystemProviderError(error: NodeJS.ErrnoException): FileSystemProviderError {
     if (error instanceof FileSystemProviderError) {
       return error; // avoid double conversion
     }

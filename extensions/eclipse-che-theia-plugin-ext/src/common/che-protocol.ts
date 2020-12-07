@@ -148,11 +148,11 @@ export enum FileTypeMain {
 export interface CheSideCarFileSystem {
   $stat(resource: string): Promise<{ type: FileTypeMain; mtime: number; ctime: number; size: number }>;
   $mkdir(resource: string): Promise<void>;
-  $readdir(resource: string): Promise<[string, string][]>; // replace second string with FileType
+  $readdir(resource: string): Promise<[string, FileTypeMain][]>;
   $delete(resource: string, opts: { recursive: boolean; useTrash: boolean }): Promise<void>;
   $rename(from: string, to: string, opts: { overwrite: boolean }): Promise<void>;
   $readFile(resource: string): Promise<string>;
-  $writeFile(resource: string, content: Uint8Array, opts: { overwrite: boolean; create: boolean }): Promise<void>;
+  $writeFile(resource: string, content: string, opts: { overwrite: boolean; create: boolean }): Promise<void>;
 }
 
 export interface CheSideCarFileSystemMain {
