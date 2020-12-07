@@ -154,12 +154,12 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     return Promise.reject('Not implemented.');
   }
 
-  async $readFile(resource: string): Promise<Uint8Array> {
+  async $readFile(resource: string): Promise<string> {
     console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile for resource: ' + resource);
     const _uri = URI.parse(resource);
     console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile parsed _uri: ' + JSON.stringify(_uri));
     try {
-      return await promisify(readFile)(_uri.fsPath);
+      return (await promisify(readFile)(_uri.fsPath)).toString();
     } catch (error) {
       return Promise.reject(this.toFileSystemProviderError(error));
     }

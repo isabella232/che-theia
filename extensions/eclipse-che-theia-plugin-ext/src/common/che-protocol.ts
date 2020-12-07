@@ -151,7 +151,7 @@ export interface CheSideCarFileSystem {
   $readdir(resource: string): Promise<[string, string][]>; // replace second string with FileType
   $delete(resource: string, opts: { recursive: boolean; useTrash: boolean }): Promise<void>;
   $rename(from: string, to: string, opts: { overwrite: boolean }): Promise<void>;
-  $readFile(resource: string): Promise<Uint8Array>;
+  $readFile(resource: string): Promise<string>;
   $writeFile(resource: string, content: Uint8Array, opts: { overwrite: boolean; create: boolean }): Promise<void>;
 }
 
