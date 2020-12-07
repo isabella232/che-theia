@@ -79,13 +79,13 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
 
   async $stat(resource: string): Promise<{ type: FileTypeMain; mtime: number; ctime: number; size: number }> {
     try {
-      const { stat, symbolicLink } = await this.statLink(resource); // cannot use fs.stat() here to support links properly
+      const statAndLink  = await this.statLink(resource); // cannot use fs.stat() here to support links properly
 
       return {
-        type: this.toType(stat, symbolicLink),
-        ctime: stat.birthtime.getTime(), // intentionally not using ctime here, we want the creation time
-        mtime: stat.mtime.getTime(),
-        size: stat.size,
+        type: this.toType(statAndLink.stat, statAndLink.symbolicLink),
+        ctime: statAndLink.stat.birthtime.getTime(), // intentionally not using ctime here, we want the creation time
+        mtime: statAndLink.stat.mtime.getTime(),
+        size: statAndLink.stat.size,
       };
     } catch (error) {
       throw this.toFileSystemProviderError(error);
