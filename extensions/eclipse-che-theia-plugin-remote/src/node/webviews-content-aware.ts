@@ -74,9 +74,7 @@ export class WebviewsContentAware {
   // with https scheme and authority
   private rebind$asWebviewUri(webview: theia.Webview): void {
     const original$asWebviewUri = webview.asWebviewUri.bind(webview);
-    webview.asWebviewUri = (resource: Uri) => {
-      return original$asWebviewUri(overrideUri(resource));
-    };
+    webview.asWebviewUri = (resource: Uri) => original$asWebviewUri(overrideUri(resource));
   }
 
   // Browser part perform preprocess initial html content by replacing vscode-resource:/path/to/file
