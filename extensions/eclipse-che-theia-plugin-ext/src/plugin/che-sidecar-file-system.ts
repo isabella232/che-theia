@@ -159,9 +159,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     const _uri = URI.parse(resource);
     console.log('+++ plugin/che-sidecar-file-system.ts:72 $readFile parsed _uri: ' + JSON.stringify(_uri));
     try {
-      const content = await promisify(readFile)(_uri.fsPath);
-      console.log('+++ plugin/che-sidecar-file-system.ts:77 $readFile content read: ' + content);
-      return content;
+      return await promisify(readFile)(_uri.fsPath);
     } catch (error) {
       return Promise.reject(this.toFileSystemProviderError(error));
     }
