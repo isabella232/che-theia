@@ -128,9 +128,7 @@ export class CheSideCarFileSystemProvider implements FileSystemProviderWithFileR
       '+++ che-sidecar-file-system-main.ts:102 CheSideCarFileSystemProvider > readFile for resource: ' +
         resource.path.toString()
     );
-    const content = await this.delegate.$readFile(resource.path.toString());
-    console.log('+++ che-sidecar-file-system-main.ts:102 CheSideCarFileSystemProvider > readFile content: ' + content);
-    return content;
+    return  await this.delegate.$readFile(resource.path.toString());
   }
 
   async writeFile(resource: URI, content: Uint8Array, opts: FileWriteOptions): Promise<void> {
