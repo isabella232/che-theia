@@ -1,8 +1,3 @@
-import * as files from '@theia/filesystem/lib/common/files';
-
-import { URI, UriComponents } from 'vscode-uri';
-
-import { BinaryBuffer } from '@theia/core/lib/common/buffer';
 /**********************************************************************
  * Copyright (c) 2021 Red Hat, Inc.
  *
@@ -14,6 +9,9 @@ import { BinaryBuffer } from '@theia/core/lib/common/buffer';
  ***********************************************************************/
 import { FileSystemExtImpl } from '@theia/plugin-ext/lib/plugin/file-system-ext-impl';
 import { overrideUri } from './che-content-aware-utils';
+import { URI, UriComponents } from 'vscode-uri';
+import { BinaryBuffer } from '@theia/core/lib/common/buffer';
+import * as files from '@theia/filesystem/lib/common/files';
 
 export class FileSystemContentAware {
   static makeFileSystemContentAware(fileSystemExt: FileSystemExtImpl): void {
