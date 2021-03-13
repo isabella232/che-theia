@@ -143,7 +143,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
   private async doWrite(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
     const normalizedPos = this.normalizePos(fd, pos);
 
-    let bytesWritten: number | null = null;
+    let bytesWritten: number | undefined = undefined;
     try {
       const result = await promisify(write)(fd, data, offset, length, normalizedPos);
 
@@ -161,7 +161,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     }
   }
 
-  private normalizePos(fd: number, pos: number): number | null {
+  private normalizePos(fd: number, pos: number): number | undefined {
     // when calling fs.read/write we try to avoid passing in the "pos" argument and
     // rather prefer to pass in "null" because this avoids an extra seek(pos)
     // call that in some cases can even fail (e.g. when opening a file over FTP -
@@ -170,13 +170,13 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     // as such, we compare the passed in position argument with our last known
     // position for the file descriptor and use "null" if they match.
     if (pos === this.mapHandleToPos.get(fd)) {
-      return null;
+      return undefined;
     }
 
     return pos;
   }
 
-  private updatePos(fd: number, pos: number | null, bytesLength: number | null): void {
+  private updatePos(fd: number, pos: number | undefined, bytesLength: number | undefined): void {
     const lastKnownPos = this.mapHandleToPos.get(fd);
     if (typeof lastKnownPos === 'number') {
       // pos !== null signals that previously a position was used that is
@@ -268,7 +268,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
 
   protected async doDelete(filePath: string, opts: FileDeleteOptions): Promise<void> {
     if (opts.useTrash) {
-      //we don't support this option, so show information about using trash option in container
+      // we don't support this option, so show information about using trash option in container
     }
 
     if (opts.recursive) {
@@ -293,10 +293,10 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
 
   protected async rimrafUnlink(path: string): Promise<void> {
     try {
-      const stat = await promisify(lstat)(path);
+      const rawStat = await promisify(lstat)(path);
 
       // Folder delete (recursive) - NOT for symbolic links though!
-      if (stat.isDirectory() && !stat.isSymbolicLink()) {
+      if (rawStat.isDirectory() && !rawStat.isSymbolicLink()) {
         // Children
         const children = await promisify(readdir)(path);
         await Promise.all(children.map(child => this.rimrafUnlink(join(path, child))));
@@ -305,7 +305,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
         await promisify(rmdir)(path);
       } else {
         // chmod as needed to allow for unlink
-        const mode = stat.mode;
+        const mode = rawStat.mode;
         if (!(mode & 128)) {
           // 128 === 0200
           await promisify(chmod)(path, mode | 128);
@@ -351,14 +351,14 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
     }
 
     async function updateMtime(path: string): Promise<void> {
-      const stat = await promisify(lstat)(path);
-      if (stat.isDirectory() || stat.isSymbolicLink()) {
+      const rawStat = await promisify(lstat)(path);
+      if (rawStat.isDirectory() || rawStat.isSymbolicLink()) {
         return Promise.resolve(); // only for files
       }
 
       const fd = await promisify(open)(path, 'a');
       try {
-        await promisify(futimes)(fd, stat.atime, new Date());
+        await promisify(futimes)(fd, rawStat.atime, new Date());
       } catch (error) {
         // ignore
       }
@@ -445,7 +445,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
   }
 
   protected async doCopy(source: string, target: string, copiedSourcesIn?: { [path: string]: boolean }): Promise<void> {
-    const copiedSources = copiedSourcesIn ? copiedSourcesIn : Object.create(null);
+    const copiedSources = copiedSourcesIn ? copiedSourcesIn : {};
 
     const fileStat = await promisify(stat)(source);
     if (!fileStat.isDirectory()) {
@@ -532,7 +532,7 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
           }
 
           // we need to explicitly chmod because of https://github.com/nodejs/node/issues/1104
-          chmod(target, mode, error => (error ? reject(error) : resolve()));
+          chmod(target, mode, err => (err ? reject(err) : resolve()));
         }
       };
 
@@ -564,8 +564,8 @@ export class CheSideCarFileSystemImpl implements CheSideCarFileSystem {
       await Promise.all(
         children.map(async child => {
           try {
-            const stat = await this.$stat(join(resource, child));
-            result.push([child, stat.type]);
+            const rawStat = await this.$stat(join(resource, child));
+            result.push([child, rawStat.type]);
           } catch (error) {
             console.trace(error); // ignore errors for individual entries that can arise from permission denied
           }

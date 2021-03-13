@@ -7,11 +7,18 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  ***********************************************************************/
+
+import {
+  FileDeleteOptions,
+  FileOpenOptions,
+  FileOverwriteOptions,
+  FileWriteOptions,
+} from '@theia/filesystem/lib/common/files';
+import { URI, UriComponents } from 'vscode-uri';
+
+import { BinaryBuffer } from '@theia/core/lib/common/buffer';
 import { FileSystemExtImpl } from '@theia/plugin-ext/lib/plugin/file-system-ext-impl';
 import { overrideUri } from './che-content-aware-utils';
-import { URI, UriComponents } from 'vscode-uri';
-import { BinaryBuffer } from '@theia/core/lib/common/buffer';
-import * as files from '@theia/filesystem/lib/common/files';
 
 export class FileSystemContentAware {
   static makeFileSystemContentAware(fileSystemExt: FileSystemExtImpl): void {
@@ -61,7 +68,7 @@ export class FileSystemContentAware {
       handle: number,
       resource: UriComponents,
       content: BinaryBuffer,
-      opts: files.FileWriteOptions
+      opts: FileWriteOptions
     ) => original$writeFile(handle, overrideUri(URI.revive(resource)), content, opts);
   }
 
@@ -72,19 +79,15 @@ export class FileSystemContentAware {
       handle: number,
       oldUri: UriComponents,
       newUri: UriComponents,
-      opts: files.FileOverwriteOptions
+      opts: FileOverwriteOptions
     ) => original$rename(handle, overrideUri(URI.revive(oldUri)), overrideUri(URI.revive(newUri)), opts);
   }
 
   protected override$copy(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$copy');
     const original$copy = fileSystemExt.$copy.bind(fileSystemExt);
-    fileSystemExt.$copy = (
-      handle: number,
-      oldUri: UriComponents,
-      newUri: UriComponents,
-      opts: files.FileOverwriteOptions
-    ) => original$copy(handle, overrideUri(URI.revive(oldUri)), overrideUri(URI.revive(newUri)), opts);
+    fileSystemExt.$copy = (handle: number, oldUri: UriComponents, newUri: UriComponents, opts: FileOverwriteOptions) =>
+      original$copy(handle, overrideUri(URI.revive(oldUri)), overrideUri(URI.revive(newUri)), opts);
   }
 
   protected override$mkdir(fileSystemExt: FileSystemExtImpl): void {
@@ -97,14 +100,14 @@ export class FileSystemContentAware {
   protected override$delete(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$delete');
     const original$delete = fileSystemExt.$delete.bind(fileSystemExt);
-    fileSystemExt.$delete = (handle: number, resource: UriComponents, opts: files.FileDeleteOptions) =>
+    fileSystemExt.$delete = (handle: number, resource: UriComponents, opts: FileDeleteOptions) =>
       original$delete(handle, overrideUri(URI.revive(resource)), opts);
   }
 
   protected override$open(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$open');
     const original$open = fileSystemExt.$open.bind(fileSystemExt);
-    fileSystemExt.$open = (handle: number, resource: UriComponents, opts: files.FileOpenOptions) =>
+    fileSystemExt.$open = (handle: number, resource: UriComponents, opts: FileOpenOptions) =>
       original$open(handle, overrideUri(URI.revive(resource)), opts);
   }
 }
