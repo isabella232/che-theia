@@ -8,16 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  ***********************************************************************/
 
-import {
-  FileDeleteOptions,
-  FileOpenOptions,
-  FileOverwriteOptions,
-  FileWriteOptions,
-} from '@theia/filesystem/lib/common/files';
-import { URI, UriComponents } from 'vscode-uri';
-
-import { BinaryBuffer } from '@theia/core/lib/common/buffer';
 import { FileSystemExtImpl } from '@theia/plugin-ext/lib/plugin/file-system-ext-impl';
+import { Uri } from '@theia/plugin';
 import { overrideUri } from './che-content-aware-utils';
 
 export class FileSystemContentAware {
@@ -35,79 +27,61 @@ export class FileSystemContentAware {
     this.override$copy(fileSystemExt);
     this.override$mkdir(fileSystemExt);
     this.override$delete(fileSystemExt);
-    this.override$open(fileSystemExt);
   }
 
   protected override$stat(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$stat');
-    const original$stat = fileSystemExt.$stat.bind(fileSystemExt);
-    fileSystemExt.$stat = (handle: number, resource: UriComponents) => {
+    // fileSystemExt.fileSystem.stat
+    const original$stat = fileSystemExt.fileSystem.stat.bind(fileSystemExt);
+    fileSystemExt.fileSystem.stat = (uri: Uri) => {
       console.log('>>> override$stat call');
-      return original$stat(handle, overrideUri(URI.revive(resource)));
+      return original$stat(overrideUri(uri));
     };
   }
 
   protected override$readdir(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$readdir');
-    const original$readdir = fileSystemExt.$readdir.bind(fileSystemExt);
-    fileSystemExt.$readdir = (handle: number, resource: UriComponents) =>
-      original$readdir(handle, overrideUri(URI.revive(resource)));
+    const original$readdir = fileSystemExt.fileSystem.readDirectory.bind(fileSystemExt);
+    fileSystemExt.fileSystem.readDirectory = (uri: Uri) => original$readdir(overrideUri(uri));
   }
 
   protected override$readFile(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$readFile');
-    const original$readFile = fileSystemExt.$readFile.bind(fileSystemExt);
-    fileSystemExt.$readFile = (handle: number, resource: UriComponents) =>
-      original$readFile(handle, overrideUri(URI.revive(resource)));
+    const original$readFile = fileSystemExt.fileSystem.readFile.bind(fileSystemExt);
+    fileSystemExt.fileSystem.readFile = (uri: Uri) => original$readFile(overrideUri(uri));
   }
 
   protected override$writeFile(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$writeFile');
-    const original$writeFile = fileSystemExt.$writeFile.bind(fileSystemExt);
-    fileSystemExt.$writeFile = (
-      handle: number,
-      resource: UriComponents,
-      content: BinaryBuffer,
-      opts: FileWriteOptions
-    ) => original$writeFile(handle, overrideUri(URI.revive(resource)), content, opts);
+    const original$writeFile = fileSystemExt.fileSystem.writeFile.bind(fileSystemExt);
+    fileSystemExt.fileSystem.writeFile = (uri: Uri, content: Uint8Array) =>
+      original$writeFile(overrideUri(uri), content);
   }
 
   protected override$rename(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$rename');
-    const original$rename = fileSystemExt.$rename.bind(fileSystemExt);
-    fileSystemExt.$rename = (
-      handle: number,
-      oldUri: UriComponents,
-      newUri: UriComponents,
-      opts: FileOverwriteOptions
-    ) => original$rename(handle, overrideUri(URI.revive(oldUri)), overrideUri(URI.revive(newUri)), opts);
+    const original$rename = fileSystemExt.fileSystem.rename.bind(fileSystemExt);
+    fileSystemExt.fileSystem.rename = (source: Uri, target: Uri, options?: { overwrite?: boolean }) =>
+      original$rename(overrideUri(source), overrideUri(target), options);
   }
 
   protected override$copy(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$copy');
-    const original$copy = fileSystemExt.$copy.bind(fileSystemExt);
-    fileSystemExt.$copy = (handle: number, oldUri: UriComponents, newUri: UriComponents, opts: FileOverwriteOptions) =>
-      original$copy(handle, overrideUri(URI.revive(oldUri)), overrideUri(URI.revive(newUri)), opts);
+    const original$copy = fileSystemExt.fileSystem.copy.bind(fileSystemExt);
+    fileSystemExt.fileSystem.copy = (source: Uri, target: Uri, options?: { overwrite?: boolean }) =>
+      original$copy(overrideUri(source), overrideUri(target), options);
   }
 
   protected override$mkdir(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$mkdir');
-    const original$mkdir = fileSystemExt.$mkdir.bind(fileSystemExt);
-    fileSystemExt.$mkdir = (handle: number, resource: UriComponents) =>
-      original$mkdir(handle, overrideUri(URI.revive(resource)));
+    const original$mkdir = fileSystemExt.fileSystem.createDirectory.bind(fileSystemExt);
+    fileSystemExt.fileSystem.createDirectory = (uri: Uri) => original$mkdir(overrideUri(uri));
   }
 
   protected override$delete(fileSystemExt: FileSystemExtImpl): void {
     console.log('>>> override$delete');
-    const original$delete = fileSystemExt.$delete.bind(fileSystemExt);
-    fileSystemExt.$delete = (handle: number, resource: UriComponents, opts: FileDeleteOptions) =>
-      original$delete(handle, overrideUri(URI.revive(resource)), opts);
-  }
-
-  protected override$open(fileSystemExt: FileSystemExtImpl): void {
-    console.log('>>> override$open');
-    const original$open = fileSystemExt.$open.bind(fileSystemExt);
-    fileSystemExt.$open = (handle: number, resource: UriComponents, opts: FileOpenOptions) =>
-      original$open(handle, overrideUri(URI.revive(resource)), opts);
+    const original$delete = fileSystemExt.fileSystem.delete.bind(fileSystemExt);
+    fileSystemExt.fileSystem.delete = (uri: Uri, options?: { recursive?: boolean; useTrash?: boolean }) =>
+      original$delete(overrideUri(uri), options);
   }
 }
