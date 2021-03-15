@@ -34,7 +34,7 @@ export class FileSystemContentAware {
     // fileSystemExt.fileSystem.stat
     const original$stat = fileSystemExt.fileSystem.stat.bind(fileSystemExt);
     fileSystemExt.fileSystem.stat = (uri: Uri) => {
-      console.log('>>> override$stat call');
+      console.log('>>> override$stat call with uri: ' + uri);
       return original$stat(overrideUri(uri));
     };
   }
