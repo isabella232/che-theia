@@ -102,8 +102,7 @@ export class CheSideCarFileSystemMainImpl implements CheSideCarFileSystemMain {
   $registerFileSystemProvider(scheme: string): Promise<void> {
     const provider = new CheSideCarFileSystemProvider(
       this.delegate,
-      FileSystemProviderCapabilities.FileReadWrite |
-        FileSystemProviderCapabilities.FileFolderCopy
+      FileSystemProviderCapabilities.FileReadWrite | FileSystemProviderCapabilities.FileFolderCopy
     );
     const disposable = this.fileService.registerProvider(scheme, provider);
     this.registrations.set(scheme, disposable);
